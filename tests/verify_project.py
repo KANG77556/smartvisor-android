@@ -8,11 +8,15 @@ def must(path):
     return p
 manifest = must('watchface/src/main/AndroidManifest.xml')
 wf = must('watchface/src/main/res/raw/watchface.xml')
+build = must('watchface/build.gradle.kts')
 comp_manifest = must('companion/src/main/AndroidManifest.xml')
 mroot = ET.parse(manifest).getroot()
 app = mroot.find('application')
 android = '{http://schemas.android.com/apk/res/android}'
 assert app.get(android+'hasCode') == 'false'
+props = {p.get(android+'name'): p.get(android+'value') for p in app.findall('property')}
+assert props.get('com.google.wear.watchface.format.version') == '1'
+assert 'minSdk = 33' in build.read_text(encoding='utf-8')
 root = ET.parse(wf).getroot()
 assert root.tag == 'WatchFace'
 assert root.get('clipShape') == 'CIRCLE'
