@@ -33,7 +33,10 @@ for label in ['다음 수업', '오늘 할 일', '걸음', '배터리']:
     assert label in text, label
 assert 'primaryProvider="com.kang77556.schoolwatch.companion/com.kang77556.schoolwatch.companion.NextClassComplicationService"' in text
 assert 'primaryProvider="com.kang77556.schoolwatch.companion/com.kang77556.schoolwatch.companion.PriorityTaskComplicationService"' in text
-assert 'size="84"' in text
+assert 'size="92"' in text
+assert 'size="27"' in text
+assert 'size="22"' in text
+assert 'size="19"' in text
 assert 'mode="AMBIENT"' in text
 assert text.count('mode="AMBIENT"') >= 2
 cm = comp_manifest.read_text(encoding='utf-8')
