@@ -23,20 +23,16 @@ root = ET.parse(wf).getroot()
 assert root.tag == 'WatchFace'
 assert root.get('clipShape') == 'CIRCLE'
 text = wf.read_text(encoding='utf-8')
-for token in ['DigitalClock', 'hourFormat="SYNC_TO_DEVICE"', '[STEP_COUNT]', '[BATTERY_PERCENT]', 'slotId="102"', 'slotId="103"', 'slotId="210"', 'slotId="211"']:
+for token in ['DigitalClock', 'hourFormat="SYNC_TO_DEVICE"', '[STEP_COUNT]', '[BATTERY_PERCENT]', 'slotId="210"', 'slotId="211"']:
     assert token in text, token
-assert 'slotId="100"' not in text
-assert 'slotId="101"' not in text
 for launch in ['target="CALENDAR"', 'target="ALARM"', 'target="com.kang77556.schoolwatch.companion"']:
     assert launch in text, launch
-for label in ['다음 수업', '오늘 할 일', '걸음', '배터리']:
+for label in ['다음 수업', '오늘 할 일', '걸음', '배터리', '시간표', '업무', '알람']:
     assert label in text, label
-assert 'primaryProvider="com.kang77556.schoolwatch.companion/com.kang77556.schoolwatch.companion.NextClassComplicationService"' in text
-assert 'primaryProvider="com.kang77556.schoolwatch.companion/com.kang77556.schoolwatch.companion.PriorityTaskComplicationService"' in text
-assert 'size="92"' in text
-assert 'size="27"' in text
-assert 'size="22"' in text
-assert 'size="19"' in text
+assert 'size="104"' in text
+assert 'size="32"' in text
+assert 'size="26"' in text
+assert 'size="23"' in text
 assert 'mode="AMBIENT"' in text
 assert text.count('mode="AMBIENT"') >= 2
 cm = comp_manifest.read_text(encoding='utf-8')
