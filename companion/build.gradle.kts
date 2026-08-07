@@ -16,4 +16,5 @@ android {
 }
 dependencies {
     implementation(libs.wear.watchface.complications.data.source)
+    testImplementation("junit:junit:4.13.2")
 }
