@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">학교 업무 워치</string>
+    <string name="next_class_provider">다음 수업</string>
+    <string name="task_provider">오늘 할 일</string>
+</resources>
