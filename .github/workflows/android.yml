@@ -1,0 +1,31 @@
+name: Android build
+
+on:
+  push:
+    branches: ["feat/school-work-watchface"]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.1.0'
+      - name: Verify project structure
+        run: python3 tests/verify_project.py
+      - name: Run unit tests
+        run: gradle :companion:testDebugUnitTest --stacktrace
+      - name: Build debug APKs
+        run: gradle :watchface:assembleDebug :companion:assembleDebug --stacktrace
+      - uses: actions/upload-artifact@v4
+        with:
+          name: school-work-watchface-debug-apks
+          path: |
+            watchface/build/outputs/apk/debug/*.apk
+            companion/build/outputs/apk/debug/*.apk
