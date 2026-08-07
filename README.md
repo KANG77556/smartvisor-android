@@ -27,3 +27,5 @@ Wear OS 4+용 Watch Face Format v1 기반 프로젝트입니다.
 `./gradlew :companion:assembleDebug :watchface:assembleDebug`
 
 > WFF 번들은 코드와 함께 배포할 수 없으므로 워치페이스와 동반 앱은 별도 APK/AAB입니다.
+
+레이아웃 수정판 1.1은 실제 원형 워치 사진을 기준으로 시간 크기와 빈 데이터 안내를 개선했습니다.
