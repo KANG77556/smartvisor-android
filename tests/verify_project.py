@@ -23,12 +23,16 @@ root = ET.parse(wf).getroot()
 assert root.tag == 'WatchFace'
 assert root.get('clipShape') == 'CIRCLE'
 text = wf.read_text(encoding='utf-8')
-for token in ['DigitalClock', 'hourFormat="SYNC_TO_DEVICE"', 'slotId="100"', 'slotId="101"', 'slotId="102"', 'slotId="103"', 'slotId="200"', 'slotId="201"']:
+for token in ['DigitalClock', 'hourFormat="SYNC_TO_DEVICE"', '[STEP_COUNT]', '[BATTERY_PERCENT]', 'slotId="102"', 'slotId="103"', 'slotId="210"', 'slotId="211"']:
     assert token in text, token
+assert 'slotId="100"' not in text
+assert 'slotId="101"' not in text
 for launch in ['target="CALENDAR"', 'target="ALARM"', 'target="com.kang77556.schoolwatch.companion"']:
     assert launch in text, launch
-for fallback in ['다음 수업', '수업 정보 없음', '오늘 할 일', '업무 정보 없음', '걸음 --', '배터리 --']:
-    assert fallback in text, fallback
+for label in ['다음 수업', '오늘 할 일', '걸음', '배터리']:
+    assert label in text, label
+assert 'primaryProvider="com.kang77556.schoolwatch.companion/com.kang77556.schoolwatch.companion.NextClassComplicationService"' in text
+assert 'primaryProvider="com.kang77556.schoolwatch.companion/com.kang77556.schoolwatch.companion.PriorityTaskComplicationService"' in text
 assert 'size="84"' in text
 assert 'mode="AMBIENT"' in text
 assert text.count('mode="AMBIENT"') >= 2
