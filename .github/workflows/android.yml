@@ -20,12 +20,13 @@ jobs:
       - name: Verify project structure
         run: python3 tests/verify_project.py
       - name: Run unit tests
-        run: gradle :companion:testDebugUnitTest --stacktrace
+        run: gradle :companion:testDebugUnitTest :phone:testDebugUnitTest --stacktrace
       - name: Build debug APKs
-        run: gradle :watchface:assembleDebug :companion:assembleDebug --stacktrace
+        run: gradle :watchface:assembleDebug :companion:assembleDebug :phone:assembleDebug --stacktrace
       - uses: actions/upload-artifact@v4
         with:
           name: school-work-watchface-debug-apks
           path: |
             watchface/build/outputs/apk/debug/*.apk
             companion/build/outputs/apk/debug/*.apk
+            phone/build/outputs/apk/debug/*.apk
