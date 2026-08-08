@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "SchoolWorkWatchFace"
-include(":watchface", ":companion")
+include(":watchface", ":companion", ":phone")
