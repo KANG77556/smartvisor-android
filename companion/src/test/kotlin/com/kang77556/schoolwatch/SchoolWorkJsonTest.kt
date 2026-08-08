@@ -1,7 +1,7 @@
 package com.kang77556.schoolwatch
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFailsWith
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class SchoolWorkJsonTest {
@@ -15,10 +15,10 @@ class SchoolWorkJsonTest {
     }
 
     @Test fun rejectsUnknownSchema() {
-        assertFailsWith<IllegalArgumentException> { SchoolWorkJson.decode(valid.replace("\"schemaVersion\":1", "\"schemaVersion\":2")) }
+        assertThrows(IllegalArgumentException::class.java) { SchoolWorkJson.decode(valid.replace("\"schemaVersion\":1", "\"schemaVersion\":2")) }
     }
 
     @Test fun rejectsMalformedJson() {
-        assertFailsWith<IllegalArgumentException> { SchoolWorkJson.decode("{bad") }
+        assertThrows(IllegalArgumentException::class.java) { SchoolWorkJson.decode("{bad") }
     }
 }
