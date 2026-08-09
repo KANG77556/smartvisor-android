@@ -25,14 +25,17 @@ assert root.get('clipShape') == 'CIRCLE'
 text = wf.read_text(encoding='utf-8')
 for token in ['DigitalClock', 'hourFormat="SYNC_TO_DEVICE"', '[STEP_COUNT]', '[BATTERY_PERCENT]', 'slotId="210"', 'slotId="211"']:
     assert token in text, token
-for launch in ['target="CALENDAR"', 'target="ALARM"', 'target="com.kang77556.schoolwatch.companion"']:
+for launch in ['target="CALENDAR"', 'target="ALARM"', 'target="com.kang77556.schoolwatch"']:
     assert launch in text, launch
-for label in ['다음 수업', '오늘 할 일', '걸음', '배터리', '시간표', '업무', '알람']:
+for provider in [
+    'com.kang77556.schoolwatch/com.kang77556.schoolwatch.companion.NextClassComplicationService',
+    'com.kang77556.schoolwatch/com.kang77556.schoolwatch.companion.PriorityTaskComplicationService',
+]:
+    assert provider in text, provider
+for label in ['다음 수업', '오늘 할 일', '걸음', '배터리', '시간표', '업무', '알람', '폰에서 동기화 필요']:
     assert label in text, label
-assert 'size="104"' in text
-assert 'size="32"' in text
-assert 'size="26"' in text
-assert 'size="23"' in text
+for size in ['size="104"', 'size="38"', 'size="33"', 'size="30"', 'size="28"', 'size="27"']:
+    assert size in text, size
 assert 'mode="AMBIENT"' in text
 assert text.count('mode="AMBIENT"') >= 2
 cm = comp_manifest.read_text(encoding='utf-8')
