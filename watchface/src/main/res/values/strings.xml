@@ -1,0 +1,9 @@
+<resources>
+    <string name="watch_face_name">학교 업무 디지털</string>
+    <string name="steps_label">걸음 수</string>
+    <string name="battery_label">배터리</string>
+    <string name="heart_label">심박수</string>
+    <string name="weather_label">날씨</string>
+    <string name="next_class_label">다음 수업</string>
+    <string name="task_label">오늘 할 일</string>
+</resources>

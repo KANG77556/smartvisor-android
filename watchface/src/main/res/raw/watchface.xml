@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WatchFace width="450" height="450" clipShape="CIRCLE">
+    <Metadata key="CLOCK_TYPE" value="DIGITAL" />
+    <Metadata key="PREVIEW_TIME" value="10:08:30" />
+    <Metadata key="STEP_GOAL" value="10000" />
+    <Scene backgroundColor="#05070A">
+        <Group name="interactive" x="0" y="0" width="450" height="450">
+            <Variant mode="AMBIENT" target="alpha" value="0" />
+            <PartText x="70" y="18" width="310" height="42"><Text align="CENTER"><Font family="SYNC_TO_DEVICE" size="30" weight="BOLD" color="#FFFFFF"><Template>%s · %d월 %d일<Parameter expression="[DAY_OF_WEEK_S]"/><Parameter expression="[MONTH]"/><Parameter expression="[DAY]"/></Template></Font></Text></PartText>
+            <DigitalClock x="24" y="55" width="382" height="120"><TimeText x="0" y="0" width="382" height="120" format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER"><Font family="SYNC_TO_DEVICE" size="104" weight="BOLD" color="#FFFFFF" /></TimeText></DigitalClock>
+            <DigitalClock x="372" y="126" width="54" height="34"><TimeText x="0" y="0" width="54" height="34" format="ss" hourFormat="SYNC_TO_DEVICE" align="START"><Font family="SYNC_TO_DEVICE" size="26" weight="BOLD" color="#168BFF" /></TimeText></DigitalClock>
+            <PartText x="35" y="172" width="180" height="40"><Text align="CENTER"><Font family="SYNC_TO_DEVICE" size="27" weight="BOLD" color="#20E883"><Template>걸음 %d<Parameter expression="[STEP_COUNT]"/></Template></Font></Text></PartText>
+            <PartText x="228" y="172" width="185" height="40"><Text align="CENTER"><Font family="SYNC_TO_DEVICE" size="27" weight="BOLD" color="#B45CFF"><Template>배터리 %d%%<Parameter expression="[BATTERY_PERCENT]"/></Template></Font></Text></PartText>
+            <PartText x="42" y="214" width="366" height="38"><Text align="START"><Font family="SYNC_TO_DEVICE" size="28" weight="BOLD" color="#168BFF">다음 수업</Font></Text></PartText>
+            <PartText x="42" y="250" width="366" height="54"><Text align="CENTER"><Font family="SYNC_TO_DEVICE" size="34" weight="BOLD" color="#FFFFFF">폰에서 동기화 필요</Font></Text></PartText>
+            <ComplicationSlot x="38" y="244" width="374" height="64" slotId="210" displayName="@string/next_class_label" supportedTypes="SHORT_TEXT EMPTY" isCustomizable="true"><DefaultProviderPolicy primaryProvider="com.kang77556.schoolwatch/com.kang77556.schoolwatch.companion.NextClassComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" /><BoundingRoundBox x="0" y="0" width="374" height="64" cornerRadius="18" /><Complication type="SHORT_TEXT"><PartText x="6" y="2" width="362" height="58"><Text align="CENTER" ellipsis="TRUE"><Font family="SYNC_TO_DEVICE" size="38" weight="BOLD" color="#FFFFFF"><Template>%s<Parameter expression="[COMPLICATION.TEXT]"/></Template></Font></Text></PartText></Complication><Complication type="EMPTY" /></ComplicationSlot>
+            <PartText x="42" y="308" width="366" height="38"><Text align="START"><Font family="SYNC_TO_DEVICE" size="28" weight="BOLD" color="#FF9A24">오늘 할 일</Font></Text></PartText>
+            <PartText x="42" y="344" width="366" height="46"><Text align="CENTER"><Font family="SYNC_TO_DEVICE" size="31" weight="BOLD" color="#FFFFFF">폰에서 동기화 필요</Font></Text></PartText>
+            <ComplicationSlot x="38" y="338" width="374" height="54" slotId="211" displayName="@string/task_label" supportedTypes="SHORT_TEXT EMPTY" isCustomizable="true"><DefaultProviderPolicy primaryProvider="com.kang77556.schoolwatch/com.kang77556.schoolwatch.companion.PriorityTaskComplicationService" primaryProviderType="SHORT_TEXT" defaultSystemProvider="EMPTY" defaultSystemProviderType="EMPTY" /><BoundingRoundBox x="0" y="0" width="374" height="54" cornerRadius="16" /><Complication type="SHORT_TEXT"><PartText x="6" y="2" width="362" height="50"><Text align="CENTER" ellipsis="TRUE"><Font family="SYNC_TO_DEVICE" size="33" weight="BOLD" color="#FFFFFF"><Template>%s<Parameter expression="[COMPLICATION.TEXT]"/></Template></Font></Text></PartText></Complication><Complication type="EMPTY" /></ComplicationSlot>
+            <PartText x="52" y="398" width="105" height="44"><Text align="CENTER"><Font family="SYNC_TO_DEVICE" size="27" weight="BOLD" color="#FFFFFF">시간표</Font></Text><Launch target="CALENDAR" /></PartText>
+            <PartText x="172" y="398" width="105" height="44"><Text align="CENTER"><Font family="SYNC_TO_DEVICE" size="27" weight="BOLD" color="#FFFFFF">업무</Font></Text><Launch target="com.kang77556.schoolwatch" /></PartText>
+            <PartText x="292" y="398" width="105" height="44"><Text align="CENTER"><Font family="SYNC_TO_DEVICE" size="27" weight="BOLD" color="#FFFFFF">알람</Font></Text><Launch target="ALARM" /></PartText>
+        </Group>
+        <Group name="ambient" x="0" y="0" width="450" height="450" alpha="0">
+            <Variant mode="AMBIENT" target="alpha" value="255" />
+            <DigitalClock x="50" y="128" width="350" height="108"><TimeText x="0" y="0" width="350" height="108" format="hh:mm" hourFormat="SYNC_TO_DEVICE" align="CENTER"><Font family="SYNC_TO_DEVICE" size="88" weight="BOLD" color="#FFFFFF" /></TimeText></DigitalClock>
+            <PartText x="85" y="240" width="280" height="42"><Text align="CENTER"><Font family="SYNC_TO_DEVICE" size="27" weight="BOLD" color="#A0A0A0"><Template>%s %d/%d<Parameter expression="[DAY_OF_WEEK_S]"/><Parameter expression="[MONTH]"/><Parameter expression="[DAY]"/></Template></Font></Text></PartText>
+            <PartText x="125" y="284" width="200" height="40"><Text align="CENTER"><Font family="SYNC_TO_DEVICE" size="25" weight="BOLD" color="#A0A0A0"><Template>배터리 %d%%<Parameter expression="[BATTERY_PERCENT]"/></Template></Font></Text></PartText>
+        </Group>
+    </Scene>
+</WatchFace>
