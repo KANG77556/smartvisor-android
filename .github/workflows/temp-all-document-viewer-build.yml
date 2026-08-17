@@ -7,8 +7,7 @@ on:
     paths:
       - alldoc_payload/**
       - alldoc_patch/**
-      - alldoc_v12/**
-      - alldoc_v12fix/**
+      - alldoc_v12b/**
       - .github/workflows/temp-all-document-viewer-build.yml
   workflow_dispatch:
 
@@ -48,14 +47,10 @@ jobs:
           base64 --decode /tmp/alldoc_patch.b64 > /tmp/alldoc_patch.tar.gz
           echo '508135285b31da3e8d275dc7b843c4bfd284b17a4a2ad4d5f668d5b9748cc697  /tmp/alldoc_patch.tar.gz' | sha256sum -c -
           tar -xzf /tmp/alldoc_patch.tar.gz -C alldoc-build
-          cat alldoc_v12/part00 alldoc_v12/part01 alldoc_v12/part02 > /tmp/alldoc_v12.b64
-          base64 --decode /tmp/alldoc_v12.b64 > /tmp/alldoc_v12.tar.gz
-          echo '85fb6c8c0edde3b61d8e473d32e1616bc0e2153e1905b7a62081d9d2689ab284  /tmp/alldoc_v12.tar.gz' | sha256sum -c -
-          tar -xzf /tmp/alldoc_v12.tar.gz -C alldoc-build
-          cat alldoc_v12fix/part00 > /tmp/alldoc_v12fix.b64
-          base64 --decode /tmp/alldoc_v12fix.b64 > /tmp/alldoc_v12fix.tar.gz
-          echo 'c078d3b33d1c31305421f7e822dec59e2d61ac876c16cb6c6050238ef0e76d91  /tmp/alldoc_v12fix.tar.gz' | sha256sum -c -
-          tar -xzf /tmp/alldoc_v12fix.tar.gz -C alldoc-build
+          cat alldoc_v12b/part00 alldoc_v12b/part01 alldoc_v12b/part02 > /tmp/alldoc_v12b.b64
+          base64 --decode /tmp/alldoc_v12b.b64 > /tmp/alldoc_v12b.tar.gz
+          echo '031a4683d824ad5624bed2a0768458caa829f8c7b12eeae904427997fb3a38e9  /tmp/alldoc_v12b.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/alldoc_v12b.tar.gz -C alldoc-build
           test -f alldoc-build/app/build.gradle.kts
           grep -Fq 'versionName = "1.2.0"' alldoc-build/app/build.gradle.kts
           grep -Fq 'versionCode = 3' alldoc-build/app/build.gradle.kts
@@ -91,12 +86,14 @@ jobs:
           test -x "$BUILD_TOOLS/zipalign"
           test -x "$BUILD_TOOLS/apksigner"
           test -f "$BUILD_TOOLS/lib/apksigner.jar"
+          test -x "$BUILD_TOOLS/aapt2"
           mkdir -p out/android-build-tools/lib
           cp "$APK" out/app-release-unsigned.apk
           cp "$BUILD_TOOLS/zipalign" out/android-build-tools/zipalign
           cp "$BUILD_TOOLS/apksigner" out/android-build-tools/apksigner
+          cp "$BUILD_TOOLS/aapt2" out/android-build-tools/aapt2
           cp "$BUILD_TOOLS/lib/apksigner.jar" out/android-build-tools/lib/apksigner.jar
-          chmod +x out/android-build-tools/zipalign out/android-build-tools/apksigner
+          chmod +x out/android-build-tools/zipalign out/android-build-tools/apksigner out/android-build-tools/aapt2
           sha256sum out/app-release-unsigned.apk | tee out/app-release-unsigned.sha256
           ls -lh out/app-release-unsigned.apk out/android-build-tools/* out/android-build-tools/lib/apksigner.jar
 
