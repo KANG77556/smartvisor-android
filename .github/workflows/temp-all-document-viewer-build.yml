@@ -127,15 +127,17 @@ jobs:
           test -x "$BUILD_TOOLS/apksigner"
           test -f "$BUILD_TOOLS/lib/apksigner.jar"
           test -x "$BUILD_TOOLS/aapt2"
-          mkdir -p out/android-build-tools/lib
+          test -f "$BUILD_TOOLS/lib64/libc++.so"
+          mkdir -p out/android-build-tools/lib out/android-build-tools/lib64
           cp "$APK" out/app-release-unsigned.apk
           cp "$BUILD_TOOLS/zipalign" out/android-build-tools/zipalign
           cp "$BUILD_TOOLS/apksigner" out/android-build-tools/apksigner
           cp "$BUILD_TOOLS/aapt2" out/android-build-tools/aapt2
           cp "$BUILD_TOOLS/lib/apksigner.jar" out/android-build-tools/lib/apksigner.jar
+          cp "$BUILD_TOOLS/lib64/libc++.so" out/android-build-tools/lib64/libc++.so
           chmod +x out/android-build-tools/zipalign out/android-build-tools/apksigner out/android-build-tools/aapt2
           sha256sum out/app-release-unsigned.apk | tee out/app-release-unsigned.sha256
-          ls -lh out/app-release-unsigned.apk out/android-build-tools/* out/android-build-tools/lib/apksigner.jar
+          ls -lh out/app-release-unsigned.apk out/android-build-tools/* out/android-build-tools/lib/apksigner.jar out/android-build-tools/lib64/libc++.so
 
       - name: Upload unsigned APK and signing tools
         uses: actions/upload-artifact@v4
