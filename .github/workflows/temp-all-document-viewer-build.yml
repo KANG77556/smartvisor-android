@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - alldoc_payload/**
+      - alldoc_patch/**
       - .github/workflows/temp-all-document-viewer-build.yml
   workflow_dispatch:
 
@@ -41,7 +42,12 @@ jobs:
           echo '376ed579b94fe6921a7f72e76f7fd871fffb008b6c9074d068410b8e4d9f792f  /tmp/alldoc_payload.tar.gz' | sha256sum -c -
           mkdir alldoc-build
           tar -xzf /tmp/alldoc_payload.tar.gz -C alldoc-build
+          cat alldoc_patch/part00 alldoc_patch/part01 > /tmp/alldoc_patch.b64
+          base64 --decode /tmp/alldoc_patch.b64 > /tmp/alldoc_patch.tar.gz
+          echo '508135285b31da3e8d275dc7b843c4bfd284b17a4a2ad4d5f668d5b9748cc697  /tmp/alldoc_patch.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/alldoc_patch.tar.gz -C alldoc-build
           test -f alldoc-build/app/build.gradle.kts
+          grep -Fq 'versionName = "1.1.0"' alldoc-build/app/build.gradle.kts
 
       - name: Unit tests
         working-directory: alldoc-build
@@ -69,7 +75,7 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: all-document-viewer-apk
+          name: all-document-viewer-v1-1-apk
           path: |
             alldoc-build/app/build/outputs/apk/release/app-release.apk
             alldoc-build/app-release.sha256
