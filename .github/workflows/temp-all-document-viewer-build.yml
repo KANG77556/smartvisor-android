@@ -8,6 +8,7 @@ on:
       - alldoc_payload/**
       - alldoc_patch/**
       - alldoc_v12b/**
+      - alldoc_hotfix/**
       - .github/workflows/temp-all-document-viewer-build.yml
   workflow_dispatch:
 
@@ -51,11 +52,14 @@ jobs:
           base64 --decode /tmp/alldoc_v12b.b64 > /tmp/alldoc_v12b.tar.gz
           echo '031a4683d824ad5624bed2a0768458caa829f8c7b12eeae904427997fb3a38e9  /tmp/alldoc_v12b.tar.gz' | sha256sum -c -
           tar -xzf /tmp/alldoc_v12b.tar.gz -C alldoc-build
+          sed -i '/kr.dogfoot:hwpxlib:1.0.9/d' alldoc-build/app/build.gradle.kts
           test -f alldoc-build/app/build.gradle.kts
           grep -Fq 'versionName = "1.2.0"' alldoc-build/app/build.gradle.kts
           grep -Fq 'versionCode = 3' alldoc-build/app/build.gradle.kts
           grep -Fq 'import java.util.Properties' alldoc-build/app/build.gradle.kts
           grep -Fq 'android:icon="@mipmap/ic_launcher"' alldoc-build/app/src/main/AndroidManifest.xml
+          grep -Fq 'io.github.spah1879:hwp2hwpx:2026.6.25-jdk11' alldoc-build/app/build.gradle.kts
+          ! grep -Fq 'kr.dogfoot:hwpxlib:1.0.9' alldoc-build/app/build.gradle.kts
 
       - name: Unit tests
         working-directory: alldoc-build
