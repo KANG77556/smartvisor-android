@@ -109,7 +109,7 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Verify unsigned APK and collect signing tools
+      - name: Verify APK, package source, and build upgrade test
         shell: bash
         run: |
           set -euo pipefail
@@ -136,10 +136,26 @@ jobs:
           cp "$BUILD_TOOLS/lib/apksigner.jar" out/android-build-tools/lib/apksigner.jar
           cp "$BUILD_TOOLS/lib64/libc++.so" out/android-build-tools/lib64/libc++.so
           chmod +x out/android-build-tools/zipalign out/android-build-tools/apksigner out/android-build-tools/aapt2
+          (
+            cd alldoc-build
+            zip -qr "$GITHUB_WORKSPACE/out/AllDocumentViewer-1.2.0-source.zip" . -x '.gradle/*' 'build/*' 'app/build/*'
+          )
+          cp alldoc-build/app/build.gradle.kts /tmp/app-build.gradle.kts.v3
+          sed -i 's/versionCode = 3/versionCode = 4/' alldoc-build/app/build.gradle.kts
+          sed -i 's/versionName = "1.2.0"/versionName = "1.2.1-upgrade-test"/' alldoc-build/app/build.gradle.kts
+          (
+            cd alldoc-build
+            ALLOW_UNSIGNED_RELEASE=true gradle --no-daemon assembleRelease
+          )
+          UPGRADE_APK=$(find alldoc-build/app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -1)
+          cp "$UPGRADE_APK" out/app-release-v4-upgrade-test-unsigned.apk
+          "$BUILD_TOOLS/aapt2" dump badging out/app-release-v4-upgrade-test-unsigned.apk | grep -F "package: name='com.milsung.alldocviewer' versionCode='4' versionName='1.2.1-upgrade-test'"
+          mv /tmp/app-build.gradle.kts.v3 alldoc-build/app/build.gradle.kts
           sha256sum out/app-release-unsigned.apk | tee out/app-release-unsigned.sha256
-          ls -lh out/app-release-unsigned.apk out/android-build-tools/* out/android-build-tools/lib/apksigner.jar out/android-build-tools/lib64/libc++.so
+          sha256sum out/app-release-v4-upgrade-test-unsigned.apk | tee out/app-release-v4-upgrade-test-unsigned.sha256
+          sha256sum out/AllDocumentViewer-1.2.0-source.zip | tee out/AllDocumentViewer-1.2.0-source.sha256
 
-      - name: Upload unsigned APK and signing tools
+      - name: Upload unsigned APK, source, upgrade test, and signing tools
         uses: actions/upload-artifact@v4
         with:
           name: all-document-viewer-v1-2-unsigned-and-tools
