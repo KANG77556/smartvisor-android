@@ -7,6 +7,7 @@ on:
     paths:
       - alldoc_payload/**
       - alldoc_patch/**
+      - alldoc_v12/**
       - .github/workflows/temp-all-document-viewer-build.yml
   workflow_dispatch:
 
@@ -46,22 +47,33 @@ jobs:
           base64 --decode /tmp/alldoc_patch.b64 > /tmp/alldoc_patch.tar.gz
           echo '508135285b31da3e8d275dc7b843c4bfd284b17a4a2ad4d5f668d5b9748cc697  /tmp/alldoc_patch.tar.gz' | sha256sum -c -
           tar -xzf /tmp/alldoc_patch.tar.gz -C alldoc-build
+          cat alldoc_v12/part00 alldoc_v12/part01 alldoc_v12/part02 > /tmp/alldoc_v12.b64
+          base64 --decode /tmp/alldoc_v12.b64 > /tmp/alldoc_v12.tar.gz
+          echo '85fb6c8c0edde3b61d8e473d32e1616bc0e2153e1905b7a62081d9d2689ab284  /tmp/alldoc_v12.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/alldoc_v12.tar.gz -C alldoc-build
           test -f alldoc-build/app/build.gradle.kts
-          grep -Fq 'versionName = "1.1.0"' alldoc-build/app/build.gradle.kts
+          grep -Fq 'versionName = "1.2.0"' alldoc-build/app/build.gradle.kts
+          grep -Fq 'versionCode = 3' alldoc-build/app/build.gradle.kts
+          grep -Fq 'android:icon="@mipmap/ic_launcher"' alldoc-build/app/src/main/AndroidManifest.xml
 
       - name: Unit tests
         working-directory: alldoc-build
+        env:
+          ALLOW_UNSIGNED_RELEASE: 'true'
         run: gradle --no-daemon testDebugUnitTest
 
-      - name: Build release APK
+      - name: Build unsigned release APK
         working-directory: alldoc-build
+        env:
+          ALLOW_UNSIGNED_RELEASE: 'true'
         run: gradle --no-daemon assembleRelease
 
-      - name: Verify APK
+      - name: Verify unsigned APK and collect signing tools
         shell: bash
         run: |
           set -euo pipefail
-          APK=alldoc-build/app/build/outputs/apk/release/app-release.apk
+          APK=$(find alldoc-build/app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -1)
+          test -n "$APK"
           test -f "$APK"
           unzip -t "$APK" >/dev/null
           if command -v apkanalyzer >/dev/null 2>&1; then
@@ -69,15 +81,23 @@ jobs:
           elif command -v aapt2 >/dev/null 2>&1; then
             ! aapt2 dump permissions "$APK" | grep -Fq android.permission.INTERNET
           fi
-          sha256sum "$APK" | tee alldoc-build/app-release.sha256
-          ls -lh "$APK"
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          test -x "$BUILD_TOOLS/zipalign"
+          test -x "$BUILD_TOOLS/apksigner"
+          test -f "$BUILD_TOOLS/lib/apksigner.jar"
+          mkdir -p out/android-build-tools/lib
+          cp "$APK" out/app-release-unsigned.apk
+          cp "$BUILD_TOOLS/zipalign" out/android-build-tools/zipalign
+          cp "$BUILD_TOOLS/apksigner" out/android-build-tools/apksigner
+          cp "$BUILD_TOOLS/lib/apksigner.jar" out/android-build-tools/lib/apksigner.jar
+          chmod +x out/android-build-tools/zipalign out/android-build-tools/apksigner
+          sha256sum out/app-release-unsigned.apk | tee out/app-release-unsigned.sha256
+          ls -lh out/app-release-unsigned.apk out/android-build-tools/* out/android-build-tools/lib/apksigner.jar
 
-      - name: Upload APK
+      - name: Upload unsigned APK and signing tools
         uses: actions/upload-artifact@v4
         with:
-          name: all-document-viewer-v1-1-apk
-          path: |
-            alldoc-build/app/build/outputs/apk/release/app-release.apk
-            alldoc-build/app-release.sha256
+          name: all-document-viewer-v1-2-unsigned-and-tools
+          path: out/
           if-no-files-found: error
           retention-days: 7
