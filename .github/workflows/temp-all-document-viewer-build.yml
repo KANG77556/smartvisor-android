@@ -1,0 +1,77 @@
+name: temp-all-document-viewer-build
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - alldoc_payload/**
+      - .github/workflows/temp-all-document-viewer-build.yml
+  workflow_dispatch:
+
+concurrency:
+  group: temp-all-document-viewer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.5
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.0'
+
+      - name: Reconstruct isolated project
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat alldoc_payload/part00 alldoc_payload/part01 alldoc_payload/part02 alldoc_payload/part03 > /tmp/alldoc_payload.b64
+          base64 --decode /tmp/alldoc_payload.b64 > /tmp/alldoc_payload.tar.gz
+          echo '376ed579b94fe6921a7f72e76f7fd871fffb008b6c9074d068410b8e4d9f792f  /tmp/alldoc_payload.tar.gz' | sha256sum -c -
+          mkdir alldoc-build
+          tar -xzf /tmp/alldoc_payload.tar.gz -C alldoc-build
+          test -f alldoc-build/app/build.gradle.kts
+
+      - name: Unit tests
+        working-directory: alldoc-build
+        run: gradle --no-daemon testDebugUnitTest
+
+      - name: Build release APK
+        working-directory: alldoc-build
+        run: gradle --no-daemon assembleRelease
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=alldoc-build/app/build/outputs/apk/release/app-release.apk
+          test -f "$APK"
+          unzip -t "$APK" >/dev/null
+          if command -v apkanalyzer >/dev/null 2>&1; then
+            ! apkanalyzer manifest permissions "$APK" | grep -Fq android.permission.INTERNET
+          elif command -v aapt2 >/dev/null 2>&1; then
+            ! aapt2 dump permissions "$APK" | grep -Fq android.permission.INTERNET
+          fi
+          sha256sum "$APK" | tee alldoc-build/app-release.sha256
+          ls -lh "$APK"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-document-viewer-apk
+          path: |
+            alldoc-build/app/build/outputs/apk/release/app-release.apk
+            alldoc-build/app-release.sha256
+          if-no-files-found: error
+          retention-days: 7
