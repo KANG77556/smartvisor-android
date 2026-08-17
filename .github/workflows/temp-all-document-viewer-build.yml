@@ -1,0 +1,164 @@
+name: temp-all-document-viewer-build
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - alldoc_payload/**
+      - alldoc_patch/**
+      - alldoc_v12b/**
+      - alldoc_hotfix/**
+      - .github/workflows/temp-all-document-viewer-build.yml
+  workflow_dispatch:
+
+concurrency:
+  group: temp-all-document-viewer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle 9.5
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.0'
+
+      - name: Reconstruct isolated project
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat alldoc_payload/part00 alldoc_payload/part01 alldoc_payload/part02 alldoc_payload/part03 > /tmp/alldoc_payload.b64
+          base64 --decode /tmp/alldoc_payload.b64 > /tmp/alldoc_payload.tar.gz
+          echo '376ed579b94fe6921a7f72e76f7fd871fffb008b6c9074d068410b8e4d9f792f  /tmp/alldoc_payload.tar.gz' | sha256sum -c -
+          mkdir alldoc-build
+          tar -xzf /tmp/alldoc_payload.tar.gz -C alldoc-build
+          cat alldoc_patch/part00 alldoc_patch/part01 > /tmp/alldoc_patch.b64
+          base64 --decode /tmp/alldoc_patch.b64 > /tmp/alldoc_patch.tar.gz
+          echo '508135285b31da3e8d275dc7b843c4bfd284b17a4a2ad4d5f668d5b9748cc697  /tmp/alldoc_patch.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/alldoc_patch.tar.gz -C alldoc-build
+          cat alldoc_v12b/part00 alldoc_v12b/part01 alldoc_v12b/part02 > /tmp/alldoc_v12b.b64
+          base64 --decode /tmp/alldoc_v12b.b64 > /tmp/alldoc_v12b.tar.gz
+          echo '031a4683d824ad5624bed2a0768458caa829f8c7b12eeae904427997fb3a38e9  /tmp/alldoc_v12b.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/alldoc_v12b.tar.gz -C alldoc-build
+          sed -i '/kr.dogfoot:hwpxlib:1.0.9/d' alldoc-build/app/build.gradle.kts
+          sed -i '/kr.dogfoot:hwplib:1.1.10/d' alldoc-build/app/build.gradle.kts
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('alldoc-build/app/build.gradle.kts')
+          s = p.read_text()
+          old = '    implementation("io.github.spah1879:hwp2hwpx:2026.6.25-jdk11")'
+          new = '''    implementation("io.github.spah1879:hwp2hwpx:2026.6.25-jdk11") {
+              exclude(group = "kr.dogfoot", module = "hwpxlib")
+              exclude(group = "kr.dogfoot", module = "hwplib")
+          }'''
+          if old not in s:
+              raise SystemExit('hwp2hwpx dependency line not found')
+          p.write_text(s.replace(old, new, 1))
+          PY
+          test -f alldoc-build/app/build.gradle.kts
+          grep -Fq 'versionName = "1.2.0"' alldoc-build/app/build.gradle.kts
+          grep -Fq 'versionCode = 3' alldoc-build/app/build.gradle.kts
+          grep -Fq 'import java.util.Properties' alldoc-build/app/build.gradle.kts
+          grep -Fq 'android:icon="@mipmap/ic_launcher"' alldoc-build/app/src/main/AndroidManifest.xml
+          grep -Fq 'io.github.spah1879:hwp2hwpx:2026.6.25-jdk11' alldoc-build/app/build.gradle.kts
+          ! grep -Fq 'implementation("kr.dogfoot:hwpxlib:' alldoc-build/app/build.gradle.kts
+          ! grep -Fq 'implementation("kr.dogfoot:hwplib:' alldoc-build/app/build.gradle.kts
+          grep -Fq 'exclude(group = "kr.dogfoot", module = "hwpxlib")' alldoc-build/app/build.gradle.kts
+          grep -Fq 'exclude(group = "kr.dogfoot", module = "hwplib")' alldoc-build/app/build.gradle.kts
+
+      - name: Unit tests
+        working-directory: alldoc-build
+        env:
+          ALLOW_UNSIGNED_RELEASE: 'true'
+        run: gradle --no-daemon testDebugUnitTest
+
+      - name: Build unsigned release APK
+        id: release_build
+        working-directory: alldoc-build
+        env:
+          ALLOW_UNSIGNED_RELEASE: 'true'
+        shell: bash
+        run: |
+          set +e
+          gradle --no-daemon assembleRelease > "$GITHUB_WORKSPACE/release-build.log" 2>&1
+          status=$?
+          echo "$status" > "$GITHUB_WORKSPACE/release-build.exit"
+          tail -n 250 "$GITHUB_WORKSPACE/release-build.log"
+          exit "$status"
+
+      - name: Upload release build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-document-viewer-v1-2-release-build-log
+          path: |
+            release-build.log
+            release-build.exit
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Verify APK, package source, and build upgrade test
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=$(find alldoc-build/app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -1)
+          test -n "$APK"
+          test -f "$APK"
+          unzip -t "$APK" >/dev/null
+          if command -v apkanalyzer >/dev/null 2>&1; then
+            ! apkanalyzer manifest permissions "$APK" | grep -Fq android.permission.INTERNET
+          elif command -v aapt2 >/dev/null 2>&1; then
+            ! aapt2 dump permissions "$APK" | grep -Fq android.permission.INTERNET
+          fi
+          BUILD_TOOLS=$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)
+          test -x "$BUILD_TOOLS/zipalign"
+          test -x "$BUILD_TOOLS/apksigner"
+          test -f "$BUILD_TOOLS/lib/apksigner.jar"
+          test -x "$BUILD_TOOLS/aapt2"
+          test -f "$BUILD_TOOLS/lib64/libc++.so"
+          mkdir -p out/android-build-tools/lib out/android-build-tools/lib64
+          cp "$APK" out/app-release-unsigned.apk
+          cp "$BUILD_TOOLS/zipalign" out/android-build-tools/zipalign
+          cp "$BUILD_TOOLS/apksigner" out/android-build-tools/apksigner
+          cp "$BUILD_TOOLS/aapt2" out/android-build-tools/aapt2
+          cp "$BUILD_TOOLS/lib/apksigner.jar" out/android-build-tools/lib/apksigner.jar
+          cp "$BUILD_TOOLS/lib64/libc++.so" out/android-build-tools/lib64/libc++.so
+          chmod +x out/android-build-tools/zipalign out/android-build-tools/apksigner out/android-build-tools/aapt2
+          (
+            cd alldoc-build
+            zip -qr "$GITHUB_WORKSPACE/out/AllDocumentViewer-1.2.0-source.zip" . -x '.gradle/*' 'build/*' 'app/build/*'
+          )
+          cp alldoc-build/app/build.gradle.kts /tmp/app-build.gradle.kts.v3
+          sed -i 's/versionCode = 3/versionCode = 4/' alldoc-build/app/build.gradle.kts
+          sed -i 's/versionName = "1.2.0"/versionName = "1.2.1-upgrade-test"/' alldoc-build/app/build.gradle.kts
+          (
+            cd alldoc-build
+            ALLOW_UNSIGNED_RELEASE=true gradle --no-daemon assembleRelease
+          )
+          UPGRADE_APK=$(find alldoc-build/app/build/outputs/apk/release -maxdepth 1 -name '*.apk' | head -1)
+          cp "$UPGRADE_APK" out/app-release-v4-upgrade-test-unsigned.apk
+          "$BUILD_TOOLS/aapt2" dump badging out/app-release-v4-upgrade-test-unsigned.apk | grep -F "package: name='com.milsung.alldocviewer' versionCode='4' versionName='1.2.1-upgrade-test'"
+          mv /tmp/app-build.gradle.kts.v3 alldoc-build/app/build.gradle.kts
+          sha256sum out/app-release-unsigned.apk | tee out/app-release-unsigned.sha256
+          sha256sum out/app-release-v4-upgrade-test-unsigned.apk | tee out/app-release-v4-upgrade-test-unsigned.sha256
+          sha256sum out/AllDocumentViewer-1.2.0-source.zip | tee out/AllDocumentViewer-1.2.0-source.sha256
+
+      - name: Upload unsigned APK, source, upgrade test, and signing tools
+        uses: actions/upload-artifact@v4
+        with:
+          name: all-document-viewer-v1-2-unsigned-and-tools
+          path: out/
+          if-no-files-found: error
+          retention-days: 7
