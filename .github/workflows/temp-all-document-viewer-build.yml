@@ -53,6 +53,7 @@ jobs:
           echo '031a4683d824ad5624bed2a0768458caa829f8c7b12eeae904427997fb3a38e9  /tmp/alldoc_v12b.tar.gz' | sha256sum -c -
           tar -xzf /tmp/alldoc_v12b.tar.gz -C alldoc-build
           sed -i '/kr.dogfoot:hwpxlib:1.0.9/d' alldoc-build/app/build.gradle.kts
+          sed -i '/kr.dogfoot:hwplib:1.1.10/d' alldoc-build/app/build.gradle.kts
           python3 - <<'PY'
           from pathlib import Path
           p = Path('alldoc-build/app/build.gradle.kts')
@@ -60,6 +61,7 @@ jobs:
           old = '    implementation("io.github.spah1879:hwp2hwpx:2026.6.25-jdk11")'
           new = '''    implementation("io.github.spah1879:hwp2hwpx:2026.6.25-jdk11") {
               exclude(group = "kr.dogfoot", module = "hwpxlib")
+              exclude(group = "kr.dogfoot", module = "hwplib")
           }'''
           if old not in s:
               raise SystemExit('hwp2hwpx dependency line not found')
@@ -72,7 +74,9 @@ jobs:
           grep -Fq 'android:icon="@mipmap/ic_launcher"' alldoc-build/app/src/main/AndroidManifest.xml
           grep -Fq 'io.github.spah1879:hwp2hwpx:2026.6.25-jdk11' alldoc-build/app/build.gradle.kts
           ! grep -Fq 'implementation("kr.dogfoot:hwpxlib:' alldoc-build/app/build.gradle.kts
+          ! grep -Fq 'implementation("kr.dogfoot:hwplib:' alldoc-build/app/build.gradle.kts
           grep -Fq 'exclude(group = "kr.dogfoot", module = "hwpxlib")' alldoc-build/app/build.gradle.kts
+          grep -Fq 'exclude(group = "kr.dogfoot", module = "hwplib")' alldoc-build/app/build.gradle.kts
 
       - name: Unit tests
         working-directory: alldoc-build
