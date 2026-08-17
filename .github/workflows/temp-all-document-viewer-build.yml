@@ -8,6 +8,7 @@ on:
       - alldoc_payload/**
       - alldoc_patch/**
       - alldoc_v12/**
+      - alldoc_v12fix/**
       - .github/workflows/temp-all-document-viewer-build.yml
   workflow_dispatch:
 
@@ -51,9 +52,14 @@ jobs:
           base64 --decode /tmp/alldoc_v12.b64 > /tmp/alldoc_v12.tar.gz
           echo '85fb6c8c0edde3b61d8e473d32e1616bc0e2153e1905b7a62081d9d2689ab284  /tmp/alldoc_v12.tar.gz' | sha256sum -c -
           tar -xzf /tmp/alldoc_v12.tar.gz -C alldoc-build
+          cat alldoc_v12fix/part00 > /tmp/alldoc_v12fix.b64
+          base64 --decode /tmp/alldoc_v12fix.b64 > /tmp/alldoc_v12fix.tar.gz
+          echo 'c078d3b33d1c31305421f7e822dec59e2d61ac876c16cb6c6050238ef0e76d91  /tmp/alldoc_v12fix.tar.gz' | sha256sum -c -
+          tar -xzf /tmp/alldoc_v12fix.tar.gz -C alldoc-build
           test -f alldoc-build/app/build.gradle.kts
           grep -Fq 'versionName = "1.2.0"' alldoc-build/app/build.gradle.kts
           grep -Fq 'versionCode = 3' alldoc-build/app/build.gradle.kts
+          grep -Fq 'import java.util.Properties' alldoc-build/app/build.gradle.kts
           grep -Fq 'android:icon="@mipmap/ic_launcher"' alldoc-build/app/src/main/AndroidManifest.xml
 
       - name: Unit tests
