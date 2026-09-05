@@ -1,10 +1,12 @@
 use crate::document_registry::{DocumentRegistry, NativeError};
+use crate::render_request::RenderRequest;
 use rhwp::DocumentCore;
 
 #[derive(Debug)]
 pub enum NativeServiceError {
     InvalidHandle(u64),
     Parse(String),
+    Render(String),
 }
 
 pub struct NativeDocumentService {
@@ -21,6 +23,16 @@ impl NativeDocumentService {
 
     pub fn page_count(&self, handle: u64) -> Result<u32, NativeServiceError> {
         self.documents.get(handle).map(|d| d.page_count()).map_err(map_registry_error)
+    }
+
+    pub fn page_info(&self, handle: u64, _page_index: u32) -> Result<(f64, f64), NativeServiceError> {
+        self.documents.get(handle).map_err(map_registry_error)?;
+        Err(NativeServiceError::Render("page info not implemented".to_string()))
+    }
+
+    pub fn render_page_png(&self, handle: u64, _request: RenderRequest) -> Result<Vec<u8>, NativeServiceError> {
+        self.documents.get(handle).map_err(map_registry_error)?;
+        Err(NativeServiceError::Render("page render not implemented".to_string()))
     }
 
     pub fn close(&mut self, handle: u64) -> Result<(), NativeServiceError> {
