@@ -24,6 +24,7 @@ fn service_error(error: NativeServiceError) -> String {
         NativeServiceError::InvalidHandle(handle) => format!("INVALID_HANDLE|unknown handle: {handle}"),
         NativeServiceError::Parse(message) => format!("OPEN_FAILED|{message}"),
         NativeServiceError::Render(message) => format!("RENDER_FAILED|{message}"),
+        NativeServiceError::Export(message) => format!("EXPORT_FAILED|{message}"),
     }
 }
 
