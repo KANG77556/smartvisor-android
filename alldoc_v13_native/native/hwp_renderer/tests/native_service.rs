@@ -70,8 +70,9 @@ fn svg_render_preserves_korean_text_and_page_geometry() {
     let mut service = NativeDocumentService::new();
     let handle = service.open_bytes(&bytes).expect("open synthetic HWPX");
     let svg = service.render_page_svg(handle, 0).expect("render svg");
+    println!("SVG_DIAG={} ", svg.chars().take(4000).collect::<String>());
     assert!(svg.contains("<svg"), "SVG root missing");
-    assert!(svg.contains("한글"), "Korean text must remain text in SVG");
+    assert!(svg.contains("한글"), "Korean text must remain text in SVG; svg={svg}");
     assert!(svg.contains("viewBox"), "page geometry viewBox missing");
     service.close(handle).expect("close document");
 }
