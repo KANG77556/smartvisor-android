@@ -1,10 +1,14 @@
+pub mod document_registry;
+pub mod native_service;
+pub mod render_request;
+
 use jni::objects::JClass;
 use jni::sys::jstring;
 use jni::JNIEnv;
 
 #[no_mangle]
 pub extern "system" fn Java_com_milsung_alldocviewer_hwp_NativeHwpBridge_nativeVersion(
-    mut env: JNIEnv,
+    env: JNIEnv,
     _class: JClass,
 ) -> jstring {
     match env.new_string("hwp_renderer/0.1.0 rhwp/0.8.4") {
