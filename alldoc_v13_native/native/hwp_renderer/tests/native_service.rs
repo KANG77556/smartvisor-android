@@ -17,3 +17,21 @@ fn invalid_handle_is_rejected() {
     let request = RenderRequest::new(0, 1.0, 4096, 16_000_000).unwrap();
     assert!(matches!(service.render_page_png(42, request), Err(NativeServiceError::InvalidHandle(42))));
 }
+
+#[test]
+fn public_fixture_reports_page_info_and_renders_png() {
+    let path = std::env::var("HWP_TEST_FIXTURE").expect("HWP_TEST_FIXTURE must be set");
+    let bytes = std::fs::read(path).expect("read public HWP fixture");
+    let mut service = NativeDocumentService::new();
+    let handle = service.open_bytes(&bytes).expect("open public HWP fixture");
+    let pages = service.page_count(handle).expect("page count");
+    assert!(pages > 0);
+    let (width, height) = service.page_info(handle, 0).expect("page info");
+    assert!(width.is_finite() && width > 0.0);
+    assert!(height.is_finite() && height > 0.0);
+    let request = RenderRequest::new(0, 1.0, 4096, 16_000_000).unwrap();
+    let png = service.render_page_png(handle, request).expect("render png");
+    assert!(png.starts_with(&[0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a]));
+    assert!(service.page_info(handle, pages).is_err());
+    service.close(handle).expect("close public HWP fixture");
+}
