@@ -32,8 +32,11 @@ jobs:
         run: |
           set -euo pipefail
           curl -fsSL --retry 3 'https://raw.githubusercontent.com/edwardkim/rhwp/496333b27d21ddb9114ba9ae340bcb895870c9a7/samples/basic/english.hwp' -o /tmp/english.hwp
+          curl -fsSL --retry 3 'https://raw.githubusercontent.com/edwardkim/rhwp/496333b27d21ddb9114ba9ae340bcb895870c9a7/samples/2026_oss_rst.hwp' -o /tmp/korean.hwp
           test -s /tmp/english.hwp
+          test -s /tmp/korean.hwp
           echo 'HWP_TEST_FIXTURE=/tmp/english.hwp' >> "$GITHUB_ENV"
+          echo 'HWP_KO_TEST_FIXTURE=/tmp/korean.hwp' >> "$GITHUB_ENV"
       - name: Preflight native document registry
         working-directory: alldoc_v13_native/native/hwp_renderer
         run: rustc --edition 2021 --test tests/document_registry.rs -o /tmp/document_registry_test && /tmp/document_registry_test
