@@ -18,6 +18,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: aarch64-linux-android,x86_64-linux-android
+      - name: Preflight native document registry
+        working-directory: alldoc_v13_native/native/hwp_renderer
+        run: rustc --edition 2021 --test tests/document_registry.rs -o /tmp/document_registry_test && /tmp/document_registry_test
       - name: Test native HWP renderer
         working-directory: alldoc_v13_native/native/hwp_renderer
         run: cargo test
