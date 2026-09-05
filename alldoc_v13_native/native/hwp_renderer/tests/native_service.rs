@@ -14,6 +14,6 @@ fn invalid_handle_is_rejected() {
     let service = NativeDocumentService::new();
     assert!(matches!(service.page_count(42), Err(NativeServiceError::InvalidHandle(42))));
     assert!(matches!(service.page_info(42, 0), Err(NativeServiceError::InvalidHandle(42))));
-    let request = RenderRequest::new(1.0, 4096, 16_000_000).unwrap();
-    assert!(matches!(service.render_page_png(42, 0, request), Err(NativeServiceError::InvalidHandle(42))));
+    let request = RenderRequest::new(0, 1.0, 4096, 16_000_000).unwrap();
+    assert!(matches!(service.render_page_png(42, request), Err(NativeServiceError::InvalidHandle(42))));
 }
