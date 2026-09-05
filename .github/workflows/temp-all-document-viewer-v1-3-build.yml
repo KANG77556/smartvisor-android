@@ -25,6 +25,9 @@ jobs:
           cargo install cargo-ndk --locked
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'ndk;26.3.11579264'
           echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/26.3.11579264" >> "$GITHUB_ENV"
+      - name: Test native HWP renderer
+        working-directory: alldoc_v13_native/native/hwp_renderer
+        run: cargo test --locked
       - name: Build native HWP renderer
         working-directory: alldoc_v13_native
         run: bash scripts/build_native_hwp.sh
