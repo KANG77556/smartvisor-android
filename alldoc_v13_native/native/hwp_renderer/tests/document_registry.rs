@@ -1,4 +1,7 @@
-use hwp_renderer::document_registry::{DocumentRegistry, NativeError};
+#[path = "../src/document_registry.rs"]
+mod document_registry;
+
+use document_registry::{DocumentRegistry, NativeError};
 
 #[test]
 fn removed_handle_is_rejected() {
