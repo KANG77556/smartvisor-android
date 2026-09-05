@@ -33,6 +33,8 @@ impl<T> DocumentRegistry<T> {
     pub fn remove(&mut self, handle: u64) -> Result<T, NativeError> {
         self.documents.remove(&handle).ok_or(NativeError::InvalidHandle(handle))
     }
+
+    pub fn len(&self) -> usize { self.documents.len() }
 }
 
 impl<T> Default for DocumentRegistry<T> {
