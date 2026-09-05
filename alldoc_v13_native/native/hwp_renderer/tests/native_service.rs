@@ -1,5 +1,6 @@
 use hwp_renderer::native_service::{NativeDocumentService, NativeServiceError};
 use hwp_renderer::render_request::RenderRequest;
+use rhwp::DocumentCore;
 
 #[test]
 fn malformed_document_is_rejected_without_allocating_handle() {
@@ -11,12 +12,29 @@ fn malformed_document_is_rejected_without_allocating_handle() {
 
 #[test]
 fn invalid_handle_is_rejected() {
-    let service = NativeDocumentService::new();
+    let mut service = NativeDocumentService::new();
     assert!(matches!(service.page_count(42), Err(NativeServiceError::InvalidHandle(42))));
     assert!(matches!(service.page_info(42, 0), Err(NativeServiceError::InvalidHandle(42))));
     let request = RenderRequest::new(0, 1.0, 4096, 16_000_000).unwrap();
     assert!(matches!(service.render_page_png(42, request), Err(NativeServiceError::InvalidHandle(42))));
     assert!(matches!(service.export_hwpx(42), Err(NativeServiceError::InvalidHandle(42))));
+    assert!(matches!(service.replace_all(42, "a", "b", true), Err(NativeServiceError::InvalidHandle(42))));
+}
+
+#[test]
+fn replace_all_mutates_document_and_survives_hwpx_export() {
+    let mut source = DocumentCore::new_empty();
+    source.create_blank_document_native().expect("blank document");
+    source.insert_text_native(0, 0, 0, "alpha beta alpha").expect("insert source text");
+    let bytes = source.export_hwpx_native().expect("export synthetic HWPX");
+    let mut service = NativeDocumentService::new();
+    let handle = service.open_bytes(&bytes).expect("open synthetic document");
+    let result = service.replace_all(handle, "alpha", "gamma", true).expect("replace text");
+    assert!(result.contains("\"count\":2"), "unexpected result: {result}");
+    let edited = service.export_hwpx(handle).expect("export edited HWPX");
+    let mut reopened = DocumentCore::from_bytes(&edited).expect("reopen edited HWPX");
+    let verify = reopened.replace_all_native("gamma", "delta", true).expect("verify replacement persisted");
+    assert!(verify.contains("\"count\":2"), "replacement not persisted: {verify}");
 }
 
 #[test]
