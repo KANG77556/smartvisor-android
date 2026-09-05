@@ -19,6 +19,7 @@ fn invalid_handle_is_rejected() {
     assert!(matches!(service.render_page_png(42, request), Err(NativeServiceError::InvalidHandle(42))));
     assert!(matches!(service.export_hwpx(42), Err(NativeServiceError::InvalidHandle(42))));
     assert!(matches!(service.replace_all(42, "a", "b", true), Err(NativeServiceError::InvalidHandle(42))));
+    assert!(matches!(service.render_page_svg(42, 0), Err(NativeServiceError::InvalidHandle(42))));
 }
 
 #[test]
@@ -58,4 +59,19 @@ fn public_fixture_reports_page_info_renders_png_and_exports_hwpx() {
     service.close(roundtrip).expect("close roundtrip HWPX");
     assert!(service.page_info(handle, pages).is_err());
     service.close(handle).expect("close public HWP fixture");
+}
+
+#[test]
+fn svg_render_preserves_korean_text_and_page_geometry() {
+    let mut source = DocumentCore::new_empty();
+    source.create_blank_document_native().expect("blank document");
+    source.insert_text_native(0, 0, 0, "한글 표 레이아웃 테스트").expect("insert korean text");
+    let bytes = source.export_hwpx_native().expect("export synthetic HWPX");
+    let mut service = NativeDocumentService::new();
+    let handle = service.open_bytes(&bytes).expect("open synthetic HWPX");
+    let svg = service.render_page_svg(handle, 0).expect("render svg");
+    assert!(svg.contains("<svg"), "SVG root missing");
+    assert!(svg.contains("한글"), "Korean text must remain text in SVG");
+    assert!(svg.contains("viewBox"), "page geometry viewBox missing");
+    service.close(handle).expect("close document");
 }
