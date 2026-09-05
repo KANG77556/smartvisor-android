@@ -169,3 +169,23 @@ pub extern "system" fn Java_com_milsung_alldocviewer_hwp_NativeHwpBridge_nativeR
         Err(_) => { throw(&mut env, "NATIVE_PANIC|native render panic"); ptr::null_mut() }
     }
 }
+
+#[no_mangle]
+pub extern "system" fn Java_com_milsung_alldocviewer_hwp_NativeHwpBridge_nativeExportHwpx(
+    mut env: JNIEnv,
+    _class: JClass,
+    handle: jlong,
+) -> jbyteArray {
+    let result = catch_unwind(AssertUnwindSafe(|| -> Result<Vec<u8>, String> {
+        if handle <= 0 { return Err("INVALID_HANDLE|handle must be positive".to_string()); }
+        with_service(|service| service.export_hwpx(handle as u64).map_err(service_error))
+    }));
+    match result {
+        Ok(Ok(bytes)) => match env.byte_array_from_slice(&bytes) {
+            Ok(array) => array.into_raw(),
+            Err(e) => { throw(&mut env, format!("JNI_ERROR|hwpx array: {e}")); ptr::null_mut() }
+        },
+        Ok(Err(message)) => { throw(&mut env, message); ptr::null_mut() }
+        Err(_) => { throw(&mut env, "NATIVE_PANIC|native HWPX export panic"); ptr::null_mut() }
+    }
+}
