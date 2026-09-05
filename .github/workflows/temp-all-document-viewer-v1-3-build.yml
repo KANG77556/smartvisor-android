@@ -20,7 +20,7 @@ jobs:
           targets: aarch64-linux-android,x86_64-linux-android
       - name: Test native HWP renderer
         working-directory: alldoc_v13_native/native/hwp_renderer
-        run: cargo test --locked
+        run: cargo test
       - name: Install Android NDK and cargo-ndk
         shell: bash
         run: |
