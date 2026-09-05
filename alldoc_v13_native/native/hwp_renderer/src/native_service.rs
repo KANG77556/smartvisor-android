@@ -9,6 +9,7 @@ pub enum NativeServiceError {
     InvalidHandle(u64),
     Parse(String),
     Render(String),
+    Export(String),
 }
 
 pub struct NativeDocumentService {
@@ -46,6 +47,11 @@ impl NativeDocumentService {
         renderer.render_raster_with_options(&tree, options)
             .map(|output| output.bytes)
             .map_err(|e| NativeServiceError::Render(e.to_string()))
+    }
+
+    pub fn export_hwpx(&self, handle: u64) -> Result<Vec<u8>, NativeServiceError> {
+        let document = self.documents.get(handle).map_err(map_registry_error)?;
+        document.export_hwpx_native().map_err(|e| NativeServiceError::Export(e.to_string()))
     }
 
     pub fn close(&mut self, handle: u64) -> Result<(), NativeServiceError> {
