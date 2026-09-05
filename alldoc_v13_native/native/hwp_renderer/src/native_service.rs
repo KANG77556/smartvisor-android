@@ -1,5 +1,7 @@
 use crate::document_registry::{DocumentRegistry, NativeError};
 use crate::render_request::RenderRequest;
+use rhwp::renderer::layer_renderer::RasterRenderOptions;
+use rhwp::renderer::skia::SkiaLayerRenderer;
 use rhwp::DocumentCore;
 
 #[derive(Debug)]
@@ -25,14 +27,25 @@ impl NativeDocumentService {
         self.documents.get(handle).map(|d| d.page_count()).map_err(map_registry_error)
     }
 
-    pub fn page_info(&self, handle: u64, _page_index: u32) -> Result<(f64, f64), NativeServiceError> {
-        self.documents.get(handle).map_err(map_registry_error)?;
-        Err(NativeServiceError::Render("page info not implemented".to_string()))
+    pub fn page_info(&self, handle: u64, page_index: u32) -> Result<(f64, f64), NativeServiceError> {
+        let document = self.documents.get(handle).map_err(map_registry_error)?;
+        let tree = document.build_page_layer_tree(page_index).map_err(|e| NativeServiceError::Render(e.to_string()))?;
+        Ok((tree.page_width, tree.page_height))
     }
 
-    pub fn render_page_png(&self, handle: u64, _request: RenderRequest) -> Result<Vec<u8>, NativeServiceError> {
-        self.documents.get(handle).map_err(map_registry_error)?;
-        Err(NativeServiceError::Render("page render not implemented".to_string()))
+    pub fn render_page_png(&self, handle: u64, request: RenderRequest) -> Result<Vec<u8>, NativeServiceError> {
+        let document = self.documents.get(handle).map_err(map_registry_error)?;
+        let tree = document.build_page_layer_tree(request.page_index).map_err(|e| NativeServiceError::Render(e.to_string()))?;
+        let renderer = SkiaLayerRenderer::new();
+        let options = RasterRenderOptions {
+            max_dimension: request.max_dimension,
+            max_pixels: request.max_pixels,
+            scale: request.scale,
+            ..RasterRenderOptions::default()
+        };
+        renderer.render_raster_with_options(&tree, options)
+            .map(|output| output.bytes)
+            .map_err(|e| NativeServiceError::Render(e.to_string()))
     }
 
     pub fn close(&mut self, handle: u64) -> Result<(), NativeServiceError> {
