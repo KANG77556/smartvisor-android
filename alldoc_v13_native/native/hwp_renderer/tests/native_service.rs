@@ -1,6 +1,6 @@
 use hwp_renderer::native_service::{NativeDocumentService, NativeServiceError};
 use hwp_renderer::render_request::RenderRequest;
-use rhwp::renderer::layer_renderer::RenderProfile;
+use rhwp::paint::RenderProfile;
 use rhwp::DocumentCore;
 
 #[test]
