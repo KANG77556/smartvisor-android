@@ -19,7 +19,7 @@ impl NativeDocumentService {
         Ok(self.documents.insert(document))
     }
 
-    pub fn page_count(&self, handle: u64) -> Result<usize, NativeServiceError> {
+    pub fn page_count(&self, handle: u64) -> Result<u32, NativeServiceError> {
         self.documents.get(handle).map(|d| d.page_count()).map_err(map_registry_error)
     }
 
