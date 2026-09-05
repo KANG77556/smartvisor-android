@@ -68,7 +68,8 @@ jobs:
               Java_com_milsung_alldocviewer_hwp_NativeHwpBridge_nativeGetPageCount \
               Java_com_milsung_alldocviewer_hwp_NativeHwpBridge_nativeGetPageInfo \
               Java_com_milsung_alldocviewer_hwp_NativeHwpBridge_nativeRenderPagePng \
-              Java_com_milsung_alldocviewer_hwp_NativeHwpBridge_nativeExportHwpx; do
+              Java_com_milsung_alldocviewer_hwp_NativeHwpBridge_nativeExportHwpx \
+              Java_com_milsung_alldocviewer_hwp_NativeHwpBridge_nativeReplaceAll; do
               nm -D --defined-only "$so" | grep -F "$symbol"
             done
           done
