@@ -10,6 +10,7 @@ pub enum NativeServiceError {
     Parse(String),
     Render(String),
     Export(String),
+    Edit(String),
 }
 
 pub struct NativeDocumentService {
@@ -47,6 +48,13 @@ impl NativeDocumentService {
         renderer.render_raster_with_options(&tree, options)
             .map(|output| output.bytes)
             .map_err(|e| NativeServiceError::Render(e.to_string()))
+    }
+
+    pub fn replace_all(&mut self, handle: u64, find: &str, replace: &str, case_sensitive: bool) -> Result<String, NativeServiceError> {
+        if find.is_empty() { return Err(NativeServiceError::Edit("find text must not be empty".to_string())); }
+        let document = self.documents.get_mut(handle).map_err(map_registry_error)?;
+        document.replace_all_native(find, replace, case_sensitive)
+            .map_err(|e| NativeServiceError::Edit(e.to_string()))
     }
 
     pub fn export_hwpx(&self, handle: u64) -> Result<Vec<u8>, NativeServiceError> {
