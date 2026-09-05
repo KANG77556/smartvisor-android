@@ -1,5 +1,6 @@
 use hwp_renderer::native_service::{NativeDocumentService, NativeServiceError};
 use hwp_renderer::render_request::RenderRequest;
+use rhwp::renderer::layer_renderer::RenderProfile;
 use rhwp::DocumentCore;
 
 #[test]
@@ -71,5 +72,20 @@ fn svg_render_preserves_korean_text_and_page_geometry() {
     assert!(svg.contains("<svg"), "SVG root missing");
     assert!(svg.contains("viewBox"), "page geometry viewBox missing");
     assert!(svg.chars().any(|c| ('가'..='힣').contains(&c)), "SVG must preserve at least one Hangul text glyph");
+    service.close(handle).expect("close document");
+}
+
+#[test]
+fn svg_service_uses_layer_screen_profile_for_layout_fidelity() {
+    let path = std::env::var("HWP_KO_TEST_FIXTURE").expect("HWP_KO_TEST_FIXTURE must be set");
+    let bytes = std::fs::read(path).expect("read public Korean HWP fixture");
+    let expected_doc = DocumentCore::from_bytes(&bytes).expect("open expected document");
+    let expected = expected_doc
+        .render_page_svg_layer_with_profile_native(0, RenderProfile::Screen)
+        .expect("render expected layer SVG");
+    let mut service = NativeDocumentService::new();
+    let handle = service.open_bytes(&bytes).expect("open service document");
+    let actual = service.render_page_svg(handle, 0).expect("render service SVG");
+    assert_eq!(actual, expected, "native SVG service must use layer Screen profile");
     service.close(handle).expect("close document");
 }
