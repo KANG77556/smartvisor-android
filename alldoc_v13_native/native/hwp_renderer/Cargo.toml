@@ -1,0 +1,11 @@
+[package]
+name = "hwp_renderer"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+jni = "0.21.1"
+rhwp = { git = "https://github.com/edwardkim/rhwp", rev = "496333b27d21ddb9114ba9ae340bcb895870c9a7", default-features = false, features = ["native-skia"] }
