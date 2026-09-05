@@ -50,6 +50,12 @@ impl NativeDocumentService {
             .map_err(|e| NativeServiceError::Render(e.to_string()))
     }
 
+    pub fn render_page_svg(&self, handle: u64, page_index: u32) -> Result<String, NativeServiceError> {
+        let document = self.documents.get(handle).map_err(map_registry_error)?;
+        document.render_page_svg_native(page_index)
+            .map_err(|e| NativeServiceError::Render(e.to_string()))
+    }
+
     pub fn replace_all(&mut self, handle: u64, find: &str, replace: &str, case_sensitive: bool) -> Result<String, NativeServiceError> {
         if find.is_empty() { return Err(NativeServiceError::Edit("find text must not be empty".to_string())); }
         let document = self.documents.get_mut(handle).map_err(map_registry_error)?;
