@@ -21,6 +21,9 @@ jobs:
       - name: Preflight native document registry
         working-directory: alldoc_v13_native/native/hwp_renderer
         run: rustc --edition 2021 --test tests/document_registry.rs -o /tmp/document_registry_test && /tmp/document_registry_test
+      - name: Preflight native render request
+        working-directory: alldoc_v13_native/native/hwp_renderer
+        run: rustc --edition 2021 --test tests/render_request.rs -o /tmp/render_request_test && /tmp/render_request_test
       - name: Test native HWP renderer
         working-directory: alldoc_v13_native/native/hwp_renderer
         run: cargo test
