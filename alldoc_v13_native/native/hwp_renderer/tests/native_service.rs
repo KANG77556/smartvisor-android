@@ -16,10 +16,11 @@ fn invalid_handle_is_rejected() {
     assert!(matches!(service.page_info(42, 0), Err(NativeServiceError::InvalidHandle(42))));
     let request = RenderRequest::new(0, 1.0, 4096, 16_000_000).unwrap();
     assert!(matches!(service.render_page_png(42, request), Err(NativeServiceError::InvalidHandle(42))));
+    assert!(matches!(service.export_hwpx(42), Err(NativeServiceError::InvalidHandle(42))));
 }
 
 #[test]
-fn public_fixture_reports_page_info_and_renders_png() {
+fn public_fixture_reports_page_info_renders_png_and_exports_hwpx() {
     let path = std::env::var("HWP_TEST_FIXTURE").expect("HWP_TEST_FIXTURE must be set");
     let bytes = std::fs::read(path).expect("read public HWP fixture");
     let mut service = NativeDocumentService::new();
@@ -32,6 +33,11 @@ fn public_fixture_reports_page_info_and_renders_png() {
     let request = RenderRequest::new(0, 1.0, 4096, 16_000_000).unwrap();
     let png = service.render_page_png(handle, request).expect("render png");
     assert!(png.starts_with(&[0x89, b'P', b'N', b'G', 0x0d, 0x0a, 0x1a, 0x0a]));
+    let hwpx = service.export_hwpx(handle).expect("export HWPX");
+    assert!(hwpx.starts_with(b"PK"));
+    let roundtrip = service.open_bytes(&hwpx).expect("reopen exported HWPX");
+    assert_eq!(service.page_count(roundtrip).expect("roundtrip page count"), pages);
+    service.close(roundtrip).expect("close roundtrip HWPX");
     assert!(service.page_info(handle, pages).is_err());
     service.close(handle).expect("close public HWP fixture");
 }
