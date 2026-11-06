@@ -79,5 +79,6 @@ jobs:
           done
       - uses: actions/upload-artifact@v4
         with:
+          retention-days: 7
           name: alldoc-v13-native-libs
           path: alldoc_v13_native/app/src/main/jniLibs
